@@ -27,4 +27,10 @@ df.player_id.unique() #ID de jugadores del partido
 #Ejemplo con Messi
 Messi = 5503
 df = df[(df["player_id"] == Messi) & (df["type"] == "Pass")].reset_index(drop=True)
-print(df.location)
+df.location #Coordenadas de la jugada
+
+df[["x_start", "y_start"]] = pd.DataFrame(df.location.tolist(), index=df.index)
+df[["x_end", "y_end"]] = pd.DataFrame(df.pass_end_location.tolist(), index=df.index) #Escogí pases, puede ser cualquier categoría 
+
+#Entra MPLSoccer
+p = Pitch(pitch_type="statsbomb")
