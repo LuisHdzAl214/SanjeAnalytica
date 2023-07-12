@@ -1,0 +1,75 @@
+"""
+Created on Sat Jul  8 16:01:54 2023
+
+@author: herna
+"""
+
+import pandas as pd
+from statsbombpy import sb
+from mplsoccer import Pitch
+from itertools import groupby
+
+
+
+df = pd.read_csv("C:/Users/herna/OneDrive/Documentos/LUIS/Deporte/Futbol/SANJE ANALYTICA/full_dataframe/full_dataframe.csv")
+
+def event_shot(events):
+	event_type=events.query("type == 'Shot'")
+	event_type=event_type.dropna(axis=1, how="all")
+	return event_type
+
+shots = event_shot(df)
+
+columns=shots.columns
+
+#Shots on target
+shots_on_target=shots.query("shot_outcome=='Goal' | shot_outcome=='Saved' | shot_outcome=='Saved to Post'")
+# Filter the data based on the desired shot outcomes
+grouped_data = shots_on_target.groupby(['match_id', 'player_id']).count()
+grouped_data=grouped_data.reset_index()
+columns_to_extract = ["player_id", "match_id", "id"]
+extracted_df = grouped_data[columns_to_extract]
+extracted_df = extracted_df.rename(columns={'id': 'shots_on_target'})
+
+# %% Goles
+
+goals = shots.query("shot_outcome=='Goal'")
+grouped_data2 = goals.groupby(['match_id', 'player_id']).count()
+grouped_data2=grouped_data2.reset_index()
+columns_to_extract = ["player_id", "match_id", "id"]
+extracted_df2 = grouped_data2[columns_to_extract]
+extracted_df2 = extracted_df2.rename(columns={'id': 'Goal'})
+print(extracted_df2)
+
+# %% Shots on target %
+df_arturbio = pd.read_csv("C:/Users/herna/OneDrive/Documentos/LUIS/Deporte/Futbol/SANJE ANALYTICA/full_dataframe/XGandShotsMerger2.csv")
+merged_df = pd.merge(extracted_df,extracted_df2 , on=['match_id', 'player_id'], how="outer")
+merged_df_final= pd.merge(merged_df,df_arturbio , on=['match_id', 'player_id'], how="outer")
+
+merged_df_final["shots on target %"] = merged_df_final["shots_on_target"] / merged_df_final["shots"]
+                                
+
+
+#%% Cross-recived (Absolute and %), Header goals (Absolute and %), Ground duels (Absolute and %)
+
+df_serra = pd.read_csv("C:/Users/herna/OneDrive/Documentos/LUIS/Deporte/Futbol/SANJE ANALYTICA/full_dataframe/penepenevagina_serrametrics.csv")
+merged_08072023 =  pd.merge(merged_df_final,df_serra  , on=['match_id', 'player_id'], how="outer")
+
+merged_08072023.to_csv("C:/Users/herna/OneDrive/Documentos/LUIS/Deporte/Futbol/SANJE ANALYTICA/penefinal.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
